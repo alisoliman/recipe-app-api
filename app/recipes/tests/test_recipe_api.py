@@ -245,3 +245,62 @@ class RecipeImageUploadTests(TestCase):
         url = upload_image_url(self.recipe.id)
         res = self.client.post(url, {'image': 'Not image'}, format='multipart')
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_filter_recipe_by_tags(self):
+        """Testing recipes with specific tags"""
+        recipe_one = sample_recipe(user=self.user,
+                                   title='Thai Vegetable Curry')
+        recipe_two = sample_recipe(user=self.user,
+                                   title='Aubergine Tahini')
+
+        tag_one = sample_tag(user=self.user, name='Vegan')
+        tag_two = sample_tag(user=self.user, name='Vegeterian')
+
+        recipe_one.tags.add(tag_one)
+        recipe_two.tags.add(tag_two)
+
+        recipe_three = sample_recipe(user=self.user, title='Fish and Chips')
+
+        res = self.client.get(
+            RECIPES_URL,
+            {
+                'tags': f'{tag_one.id},{tag_two.id}'
+            }
+        )
+        serializer_one = RecipeSerializer(recipe_one)
+        serializer_two = RecipeSerializer(recipe_two)
+        serializer_three = RecipeSerializer(recipe_three)
+
+        self.assertIn(serializer_one.data, res.data)
+        self.assertIn(serializer_two.data, res.data)
+        self.assertNotIn(serializer_three.data, res.data)
+
+    def test_filter_recipes_by_ingredients(self):
+        """Returning recipes with specific ingredients"""
+        recipe_one = sample_recipe(user=self.user,
+                                   title='Thai Vegetable Curry')
+        recipe_two = sample_recipe(user=self.user,
+                                   title='Aubergine Tahini')
+
+        ingredient_one = sample_ingredient(user=self.user, name='Curry')
+        ingredient_two = sample_ingredient(user=self.user, name='Tahini')
+
+        recipe_one.ingredients.add(ingredient_one)
+        recipe_two.ingredients.add(ingredient_two)
+
+        recipe_three = sample_recipe(user=self.user, title='Fish and Chips')
+
+        res = self.client.get(
+            RECIPES_URL,
+            {
+                'ingredients': f'{ingredient_one.id},{ingredient_two.id}'
+            }
+        )
+
+        serializer_one = RecipeSerializer(recipe_one)
+        serializer_two = RecipeSerializer(recipe_two)
+        serializer_three = RecipeSerializer(recipe_three)
+
+        self.assertIn(serializer_one.data, res.data)
+        self.assertIn(serializer_two.data, res.data)
+        self.assertNotIn(serializer_three.data, res.data)
