@@ -1,0 +1,5 @@
+[run]
+include = recipe-app-api/*
+omit = *migrations*, *tests*
+plugins =
+    django_coverage_plugin
